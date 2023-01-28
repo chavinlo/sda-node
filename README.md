@@ -130,6 +130,9 @@ Upon failure:
 }
 ```
 
+# Benchmark
+An extensive list of benchmarks is available at [docs/benchmarks.md](docs/benchmarks.md)
+
 # Examples:
 Generated with Anything-V3
 
