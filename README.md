@@ -21,6 +21,8 @@ You can download pre-compiled models from our HuggingFace' TensorRT repository:
 https://huggingface.co/tensorrt
 
 # Usage:
+
+## Instalation:
 In the meantime, this software is API only. If you have JS and HTML skills, a demo page would really be appreciated!
 
 To initiate the API server, you need to first install TensorRT and it's dependencies. I have made a small shell script to install most of the requirements, but it's not bulletproof:
@@ -80,6 +82,33 @@ LD_PRELOAD=${PLUGIN_LIBS} gunicorn -w 1 -b 0.0.0.0:5000 main:app
 
 It is EXTREMELY important that you run it with `LD_PRELOAD=${PLUGIN_LIBS}` to use the needed plugins.
 
+## Inference
+
+By default, it will use the configuration file on cfg/basic.json
+
+just change "model_path" to the folder where your .plan files are available.
+
+For example, if I want to use Anything-V3: https://huggingface.co/tensorrt/Anything-V3
+
+First, clone the HuggingFace Repo:
+```
+# Install git-lfs first
+sudo apt install git-lfs
+git lfs install
+
+git clone https://huggingface.co/tensorrt/Anything-V3
+```
+
+You can also download each file manually on the engine/ folder, just place them back in one folder again.
+
+Then, go to basic.json and edit the following line:
+`"model_path": "/workspace/TensorRT/demo/Diffusion/Anything-V3/engine",`
+Into:
+`"model_path": "anything-v3/engine",`
+It must be changed to the path of where the *.plan files are at.
+
+After this, just start the server again, and the API will be available at 127.0.0.1:5000, which you can use like below:
+
 ## Text2Image
 
 Send a JSON request in the following format:
@@ -129,6 +158,9 @@ Upon failure:
     "content": str with reason for failure
 }
 ```
+
+# Support
+Open an Issue or join SAIL discord: https://discord.gg/8Sh2T6gjd2
 
 # Benchmark
 An extensive list of benchmarks is available at [docs/benchmarks.md](docs/benchmarks.md)
