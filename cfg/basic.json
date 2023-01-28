@@ -1,0 +1,8 @@
+{
+    "model_path": "/workspace/TensorRT/demo/Diffusion/engine",
+    "schedulers": {
+        "separator": 5,
+        "max": 60,
+        "min": 20
+    }
+}
