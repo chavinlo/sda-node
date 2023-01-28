@@ -1,5 +1,5 @@
 {
-    "model_path": "/workspace/TensorRT/demo/Diffusion/engine",
+    "model_path": "/workspace/TensorRT/demo/Diffusion/Anything-V3/engine",
     "schedulers": {
         "separator": 5,
         "max": 60,

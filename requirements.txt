@@ -16,3 +16,4 @@ pycuda<2021.1
 pytest
 --extra-index-url https://pypi.ngc.nvidia.com
 onnx-graphsurgeon
+gunicorn

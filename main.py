@@ -1,40 +1,30 @@
-from flask import Flask, request, jsonify, send_file, Response
+from flask import Flask, request, jsonify, send_file
 from queue import Queue
-from threading import Lock, Thread, local
+from threading import Lock, Thread
 import json
 import os
 from threads.t2i import image_generator
 from io import BytesIO
-import base64
-from PIL import Image
 
 def serve_pil_image(pil_img):
     img_io = BytesIO()
-    pil_img.save(img_io, 'JPEG', quality=70)
+    pil_img.save(img_io, 'PNG')
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
 
-CONFIG_PATH = "/workspace/backend/nodes/v2/cfg/basic.json"
+CONFIG_PATH = "cfg/basic.json"
 
 if os.path.exists(CONFIG_PATH):
     with open(CONFIG_PATH) as f:
         config = json.load(f)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='demo')
 app.config['SECRET_KEY'] = 'secret!'
+
 # Create the request queue and image queue
 request_queue = Queue()
 image_queue = Queue()
 queue_lock = Lock()
-
-thread_local = local()
-
-API_KEY = "password123"
-
-# @app.before_request
-# def check_api_key():
-#     if not request.headers.get('APIKEY') or request.headers.get('APIKEY') != API_KEY:
-#         return jsonify({"error": "Invalid API key"}), 401
 
 @app.route("/q", methods=["GET"])
 def queues():
@@ -70,9 +60,7 @@ def txt2img():
         file = response['content']
         return serve_pil_image(file)
     elif json['mode'] == 'json':
-        jsonify(response)
-
-    return 
+        return jsonify(response)
 
 # Image Generator Engine
 image_generator_thread = Thread(

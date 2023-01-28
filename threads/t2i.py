@@ -2,7 +2,7 @@ import torch
 from queue import Queue
 import base64
 from PIL import Image
-from .models import CLIP, UNet, VAE
+from .trt.models import CLIP, UNet, VAE
 import numpy as np
 import json
 from polygraphy import cuda
@@ -10,7 +10,7 @@ import time
 import torch
 from transformers import CLIPTokenizer, CLIPTextModel
 import tensorrt as trt
-from .utilities import Engine, DPMScheduler, LMSDiscreteScheduler, save_image, TRT_LOGGER
+from .trt.utilities import Engine, DPMScheduler, LMSDiscreteScheduler, save_image, TRT_LOGGER
 import traceback
 from diffusers import EulerAncestralDiscreteScheduler, DDPMScheduler
 from io import BytesIO
@@ -277,13 +277,13 @@ def image_generator(
                 logger.debug("syncronized, converting to img")
                 images = ((images + 1) * 255 / 2).clamp(0, 255).detach().permute(0, 2, 3, 1).round().type(torch.uint8).cpu().numpy()
                 img = Image.fromarray(images[0])
+                serving_time = time.time()
                 if mode == 'file':
                     imgq('done', img)
                 elif mode == 'json':
                     buffered = BytesIO()
                     img.save(buffered, format="JPEG", quality=95)
-                    imgq("done", base64.b64encode(buffered.getvalue()).decode('utf-8'))
-                serving_time = time.time()
+                    imgq("done", {"time": serving_time - preparation_time, "img": base64.b64encode(buffered.getvalue()).decode('utf-8')})
                 benchmark_time = {
                     "PREP": preparation_time - start_time,
                     "CLIP**" if lpw else "CLIP": clip_time - preparation_time,
