@@ -1,6 +1,6 @@
 # SDA: Node
 ## Stable Diffusion Accelerated
-## 25 steps in less than a second!
+## 25 steps in less than half a second!
 ### Special thanks to Redmond AI for providing compute for testing
 
 This is the Node module for Stable Diffusion Accelerated. Using TensorRT, we can achieve speeds up to 4 times faster than native PyTorch. 
