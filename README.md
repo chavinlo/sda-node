@@ -19,7 +19,7 @@ Based on the Demo provided by NVIDIA, we (I) extended it's capabilities, some of
 
 TensorRT optimizes the SD model by compiling it into a highly optimized version that can be run on NVIDIA GPUs. This adds some limitations such as limited batch size and resolutions (up to 1024px). It optimizes the CLIP, UNET, and VAE.
 
-You can download pre-compiled models from our HuggingFace' TensorRT repository:
+You can download pre-compiled models from our Hugging Face' TensorRT repository:
 https://huggingface.co/tensorrt
 
 # Usage:
@@ -92,7 +92,7 @@ just change "model_path" to the folder where your .plan files are available.
 
 For example, if I want to use Anything-V3: https://huggingface.co/tensorrt/Anything-V3
 
-First, clone the HuggingFace Repo:
+First, clone the Hugging Face Repo:
 ```
 # Install git-lfs first
 sudo apt install git-lfs
