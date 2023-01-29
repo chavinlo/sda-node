@@ -3,6 +3,8 @@
 ## 60 steps per second!
 ### [Special thanks to Redmond AI for providing compute for testing](http://www.redmond.ai/)
 
+A demo is available on our discord server! https://discord.gg/8Sh2T6gjd2 on #text2img channel.
+
 This is the Node module for Stable Diffusion Accelerated. Using TensorRT, we can achieve speeds up to 4 times faster than native PyTorch. 
 
 Based on the Demo provided by NVIDIA, we (I) extended it's capabilities, some of them are:
