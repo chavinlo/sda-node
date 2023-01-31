@@ -11,7 +11,7 @@ from threads.trt.utilities import Engine
 import argparse
 import io
 from termcolor import colored
-from huggingface_hub import create_repo, HfApi, utils, hf_hub_download
+from huggingface_hub import create_repo, HfApi, utils, hf_hub_download, login
 import json
 import shutil
 
@@ -21,8 +21,8 @@ parser.add_argument('-o', '--output', default="./output", help="Output directory
 parser.add_argument('--build-dynamic-shape', action='store_true', help="Build TensorRT engines with dynamic image shapes.")
 parser.add_argument('--hf-token', type=str, default="none", help="HuggingFace API access token for downloading model checkpoints")
 parser.add_argument('-v', '--verbose', action='store_true', help="Enable Verbose")
-parser.add_argument('-d', '--disable-folder-check', action='store_true', help="Enable Verbose")
-parser.add_argument('-s', '--skip-compiling', action='store_true', help="Enable Verbose")
+parser.add_argument('-d', '--disable-folder-check', action='store_true', help="Disable existing folder check")
+parser.add_argument('-s', '--skip-compiling', action='store_true', help="Skip compiling")
 args = parser.parse_args()
 
 if args.skip_compiling is not True:
@@ -200,6 +200,11 @@ shutil.rmtree(onnx_dir)
 
 option = select_option("Upload model to HuggingFace?", ['Y', 'N'])
 if option.lower() == "y":
+
+    loggedprev = select_option("Have you logged previously to huggingface?", ['Y', 'N'])
+    if loggedprev.lower() == 'n':
+        login()
+
     mkrepo = select_option("Create or use an existing repo?", ['CREATE', 'EXISTING'])
     print("The name MUST include your username. For ex.: chavinlo/AlienPop")
     repo_name = input("Repository Name:")
