@@ -1,4 +1,5 @@
 # SDA: Node
+<a href="https://github.com/chavinlo/sda-node/"><img src="https://i.imgur.com/fQS926g.png"></a>
 ## Stable Diffusion Accelerated
 ## 60 steps per second!
 ### [Special thanks to Redmond AI for providing compute for testing](http://www.redmond.ai/)

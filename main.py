@@ -3,7 +3,8 @@ from queue import Queue
 from threading import Lock, Thread
 import json
 import os
-from threads.t2i import image_generator
+from threads.base import image_generator
+from threads.hf.hfman import import_index_from_hf
 from io import BytesIO
 
 def serve_pil_image(pil_img):
@@ -17,6 +18,13 @@ CONFIG_PATH = "cfg/basic.json"
 if os.path.exists(CONFIG_PATH):
     with open(CONFIG_PATH) as f:
         config = json.load(f)
+    modelsrc = config['model_path'].split(":")
+    if modelsrc[0] == 'local':
+        config['index_path'] = os.path.join(modelsrc[1], 'model_index.json')
+    elif modelsrc[0] == 'hf':
+        config['index_path'] = import_index_from_hf(modelsrc[1])
+    else:
+        raise Exception("Unknown model origin")
 
 app = Flask(__name__, static_folder='demo')
 app.config['SECRET_KEY'] = 'secret!'
@@ -31,7 +39,7 @@ def queues():
     request_length = request_queue.qsize()
     return str(request_length)
     
-@app.route("/t2i", methods=["POST"])
+@app.route("/base", methods=["POST"])
 def txt2img():
     json = request.get_json(force=True)
     print("front req", json)
@@ -46,9 +54,10 @@ def txt2img():
             "seed": int(json['seed']),
             "scheduler": str(json['scheduler']),
             "lpw": bool(json['lpw']),
+            "img": str(json['img']) if 'img' in json else None,
+            "strength": float(json['strength']) if 'strength' in json else None,
             "mode": str(json['mode']) # <- "I expect a response that is X"
         }
-        r['type'] = 'txt2img'
         request_queue.put(r)
     response = image_queue.get()
     if response['status'] == 'fail':

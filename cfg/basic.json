@@ -1,5 +1,12 @@
 {
-    "model_path": "/workspace/TensorRT/demo/Diffusion/Anything-V3/engine",
+    "model_path": "hf:tensorrt/anything-v3",
+    "extras": {
+        "en_vae": {
+            "type": "hf",
+            "path": "Linaqruf/anything-v3.0",
+            "subfolder": "vae"
+        }
+    },
     "schedulers": {
         "separator": 5,
         "max": 60,

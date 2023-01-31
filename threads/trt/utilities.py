@@ -31,16 +31,27 @@ import random
 from scipy import integrate
 import tensorrt as trt
 import torch
+from huggingface_hub import hf_hub_download
 
 TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
+
+def get_model_path(model_name, index_file, config):
+    print(index_file)
+    modelsrc = config['model_path'].split(":")
+    print(modelsrc)
+    if modelsrc[0] == 'hf':
+        return hf_hub_download(repo_id=modelsrc[1], filename=index_file[model_name]['path'])
+    elif modelsrc[0] == 'local':
+        return os.path.join(modelsrc[1], index_file[model_name]['path'])
+    else:
+        raise Exception("Failed to determine source")
 
 class Engine():
     def __init__(
         self,
-        model_name,
         engine_dir,
     ):
-        self.engine_path = os.path.join(engine_dir, model_name+'.plan')
+        self.engine_path = engine_dir
         self.engine = None
         self.context = None
         self.buffers = OrderedDict()
@@ -152,14 +163,6 @@ class LMSDiscreteScheduler():
         return sample * self.latent_scales[idx]
 
     def configure(self):
-        r"""
-        This improves efficiency by precomputing the coefficients for the linear multistep method.
-        The coefficients are computed by integrating the derivative of the LMS method.
-        The derivative is computed by taking the derivative of the LMS method with respect to the
-        time step tau.
-        The derivative is then integrated from the current time step to the next time step.
-        The coefficients are then used to compute the previous sample from the current sample.
-        """
         order = self.order
         self.lms_coeffs = []
         self.latent_scales = [1./((sigma**2 + 1) ** 0.5) for sigma in self.sigmas]
