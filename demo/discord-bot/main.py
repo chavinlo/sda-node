@@ -23,7 +23,6 @@ async def gen(ctx, *, args=None):
 
     print(args)
 
-    # use regular expression to match key-value pairs in the string
     match = re.findall(r"(\w+)=(?:\"|')([\S\s]+?)(?:\"|')", args)
     print(match)
 
