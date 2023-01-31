@@ -1,4 +1,4 @@
-# SDA: Node
+# SDA: Base
 <a href="https://github.com/chavinlo/sda-node/"><img src="https://i.imgur.com/fQS926g.png"></a>
 ## Stable Diffusion Accelerated
 ## 60 steps per second!
@@ -6,7 +6,15 @@
 
 A demo is available on our discord server! https://discord.gg/8Sh2T6gjd2 on #text2img channel.
 
-This is the Node module for Stable Diffusion Accelerated. Using TensorRT, we can achieve speeds up to 4 times faster than native PyTorch. 
+This is the Demo Base Node module for Stable Diffusion Accelerated. Using TensorRT, we can achieve speeds up to 4 times faster than native PyTorch. 
+
+# Notice
+
+Note that, this only includes the basics and has been made to serve as an example on how extensible TensorRT can be while combining it with SD.
+
+If you want a more extended, advanced, version, with support for multi-model serving, scalable, and modular models, please send us a message to dep#2171 on discord.
+
+# Description
 
 Based on the Demo provided by NVIDIA, we (I) extended it's capabilities, some of them are:
 
