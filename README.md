@@ -1,4 +1,7 @@
-# SDA: Base
+# This project has been archived.
+
+-------
+
 <a href="https://github.com/chavinlo/sda-node/"><img src="https://i.imgur.com/fQS926g.png"></a>
 ## Stable Diffusion Accelerated
 ## 60 steps per second!
