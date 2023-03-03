@@ -6,8 +6,6 @@ https://discord.gg/8Sh2T6gjd2
 # Usage:
 
 ## Instalation:
-In the meantime, this software is API only. If you have JS and HTML skills, a demo page would really be appreciated!
-
 To initiate the API server, you need to first install TensorRT and it's dependencies. I have made a small shell script to install most of the requirements, but it's not bulletproof:
 
 ```
