@@ -1,38 +1,7 @@
-# This project has been archived.
-
--------
-
-<a href="https://github.com/chavinlo/sda-node/"><img src="https://i.imgur.com/fQS926g.png"></a>
-## Stable Diffusion Accelerated
-## 60 steps per second!
+# archived
 ### [Special thanks to Redmond AI for providing compute for testing](http://www.redmond.ai/)
 
-A demo is available on our discord server! https://discord.gg/8Sh2T6gjd2 on #text2img channel.
-
-This is the Demo Base Node module for Stable Diffusion Accelerated. Using TensorRT, we can achieve speeds up to 4 times faster than native PyTorch. 
-
-# Notice
-
-Note that, this only includes the basics and has been made to serve as an example on how extensible TensorRT can be while combining it with SD.
-
-If you want a more extended, advanced, version, with support for multi-model serving, scalable, and modular models, please send us a message to dep#2171 on discord.
-
-# Description
-
-Based on the Demo provided by NVIDIA, we (I) extended it's capabilities, some of them are:
-
-* API for inference
-* Weighted prompts
-* More Schedulers
-* Benchmarking
-* More Step Counts
-
-## How it works & where to get models
-
-TensorRT optimizes the SD model by compiling it into a highly optimized version that can be run on NVIDIA GPUs. This adds some limitations such as limited batch size and resolutions (up to 1024px). It optimizes the CLIP, UNET, and VAE.
-
-You can download pre-compiled models from our HuggingFace' TensorRT repository:
-https://huggingface.co/tensorrt
+https://discord.gg/8Sh2T6gjd2
 
 # Usage:
 
@@ -283,6 +252,3 @@ lpw: True
 scheduler: LMSD
 accelerated: True
 ```
-
-# License:
-The Software is intended for individual use only. Any use by groups such as companies, large communities, commercial, for-profit entities, etc. must be approved before-hand by the Copyright Owner. This includes but is not limited to: Discord Bots, Software-as-a-Service, etc.
