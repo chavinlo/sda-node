@@ -10,7 +10,7 @@ To initiate the API server, you need to first install TensorRT and it's dependen
 
 ```
 # install python3.10 and create a venv
-sudo apt update && sudo apt upgrade -y
+sudo apt update 
 sudo apt install software-properties-common -y
 sudo add-apt-repository --yes ppa:deadsnakes/ppa
 
