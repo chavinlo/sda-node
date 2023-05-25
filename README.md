@@ -1,252 +1,86 @@
-# archived
-### [Special thanks to Redmond AI for providing compute for testing](http://www.redmond.ai/)
+# Stable Diffusion Accelerated (SDA)
 
-https://discord.gg/8Sh2T6gjd2
+Note: Most of the code is borrowed from nvidia's repo
 
-# Usage:
+This is a simplified library to use stable diffusion with TensorRT
 
-## Instalation:
-To initiate the API server, you need to first install TensorRT and it's dependencies. I have made a small shell script to install most of the requirements, but it's not bulletproof:
+# Usage
 
-```
-# install python3.10 and create a venv
-sudo apt update 
-sudo apt install software-properties-common -y
-sudo add-apt-repository --yes ppa:deadsnakes/ppa
+## Import
 
-sudo apt update && sudo apt install python3.10 python3.10-venv python3.10-dev -y
-
-# create and enable the venv
-python3.10 -m venv env
-source env/bin/activate
-
-# Install system TensorRT
-sudo apt install tensorrt tensorrt-dev tensorrt-devel tensorrt-libs -y
-
-# Clone the TensorRT repo
-git clone https://github.com/NVIDIA/TensorRT
-cd TensorRT
-git submodule update --init --recursive
-
-pip install --upgrade pip
-pip install --upgrade tensorrt
-
-export TRT_OSSPATH=$PWD
-
-cd $TRT_OSSPATH
-mkdir -p build && cd build
-cmake .. -DTRT_OUT_DIR=$PWD/out
-cd plugin
-make -j$(nproc)
-
-export PLUGIN_LIBS="$TRT_OSSPATH/build/out/libnvinfer_plugin.so"
-
-cd $TRT_OSSPATH/demo/Diffusion
-pip install -r requirements.txt
+```python
+from sda.diffusion_mode_pipeline import DiffusionModePipeline
 ```
 
-Now you should have the dependencies and plugin compiled. I highly recommend running `echo $PLUGIN_LIBS` and save the output somewhere, as this is the compiled plugin needed for tensorRT inference
+## Initiate Pipeline
 
-now go back to the SDA-Node repo or clone it if you haven't.
-
-```
-git clone https://github.com/chavinlo/sda-node
-cd sda-node
-```
-
-now just install your python server of choice and start the server:
-```
-pip install -r requirements.txt
-pip install gunicorn
-LD_PRELOAD=${PLUGIN_LIBS} gunicorn -w 1 -b 0.0.0.0:5000 main:app
+```python
+pipe = DiffusionModePipeline(
+    max_batch_size=16,
+    device="cuda",
+    verbose=False,
+    min_image_shape=256,
+    max_image_shape=1024,
+    text_max_len=77
+)
 ```
 
-It is EXTREMELY important that you run it with `LD_PRELOAD=${PLUGIN_LIBS}` to use the needed plugins.
+Remember that the models must match the configuration
 
-## Inference
+## Load Models
 
-By default, it will use the configuration file on cfg/basic.json
+```python
+pipe.loadEngine(
+    path="/shared/models/tensor/unet.plan",
+    alias="SD2"
+)
 
-just change "model_path" to the folder where your .plan files are available.
+pipe.loadEngine(
+    path="/shared/models/tensor/clip.plan",
+    alias="SD2"
+)
 
-For example, if I want to use Anything-V3: https://huggingface.co/tensorrt/Anything-V3
-
-First, clone the HuggingFace Repo:
+pipe.loadEngine(
+    path="/shared/models/tensor/vae.plan",
+    alias="SD2"
+)
 ```
-# Install git-lfs first
-sudo apt install git-lfs
-git lfs install
 
-git clone https://huggingface.co/tensorrt/Anything-V3
+You can load multiple models on a single GPU
+
+## Prepare and Generate
+
+```python
+img = pipe.infer(
+    prompt=["A car"],
+    negative_prompt=[""],
+    steps=50,
+    models={"unet": "SD2", "textencoder": "SD2", "vae": "SD2"},
+    scheduler="DDIM",
+    cfg=7.5,
+    image_height=512,
+    image_width=512,
+    seed=54321
+)
+
+img.save("output.png")
 ```
 
-You can also download each file manually on the engine/ folder, just place them back in one folder again.
+# Configuration File
 
-Then, go to basic.json and edit the following line:
-`"model_path": "/workspace/TensorRT/demo/Diffusion/Anything-V3/engine",`
-Into:
-`"model_path": "anything-v3/engine",`
-It must be changed to the path of where the *.plan files are at.
+The compiler isn't here yet, but you can just run nvidia's repo for now, and then add a json file right next to the models.
 
-After this, just start the server again, and the API will be available at 127.0.0.1:5000, which you can use like below:
+For example, for `anime_unet.plan`, `anime_unet.json` should have:
 
-## Text2Image
-
-Send a JSON request in the following format:
-```
+```json
 {
-	"prompt": str,
-	"negprompt": str,
-	"width": int (min. 256, max. 1024),
-	"height": int (min. 256, max. 1024),
-	"steps": int (multiple of 5, min. 25, check config),
-	"cfg": float,
-	"seed": int (-1 for random),
-	"scheduler": str,
-	"mode": str,
-	"lpw": bool
+	"alias": "STABLE_DIFFUSION-2_1",
+	"type": "unet",
+	"version": 2,
+	"inpaint": false,
+	"max_batch_size": 4,
+	"fp16": true
 }
 ```
 
-Where:
-
-* prompt: is the prompt, but if you want to use weighting "()" or "[]" you have to enable LPW
-* negative prompt: same as the prompt, but for things you want to avoid
-* width: integer, minimun 256, maximun 1024. Large changes might generate a mismatch error, just try again
-* height: same as width
-* steps: Depends on the config, if using the default, make sure to use a multiple of 5, minimun 25
-* cfg: float, how much text influences
-* seed: integer, -1 for random seed
-* scheduler: str, choose between EULER-A, LMSD, DPMS. DPMS and LMSD are accelerated, where as EULER-A is imported from diffusers (slower)
-* lpw: bool, wether to enable Long and Extended Prompt module (where it will accept weighting) or to disable it (faster)
-* mode: str, "file" to return a raw file download (instantly viewable), or "json" to return a json like the following:
-
-Upon success:
-```
-{
-    "status": "done",
-    "content": {
-        "img": image base64 encoded UTF-8,
-        "time": time taken to process in seconds
-    }
-}
-```
-
-Upon failure:
-```
-{
-    "status": "fail",
-    "content": str with reason for failure
-}
-```
-
-# Support
-Open an Issue or join SAIL discord: https://discord.gg/8Sh2T6gjd2
-
-# Benchmark
-An extensive list of benchmarks is available at [docs/benchmarks.md](docs/benchmarks.md)
-
-# Examples:
-Generated with Anything-V3
-
-## 512px 25 Steps - 0.47s:
-
-<img src="https://i.imgur.com/iaAB3Nq.png" height="512">
-
-```
-
-Sent Request:
-{
-	"prompt": "(Masterpiece:1.2), best quality, illustration, (delicate details:1.5),extremely detailed CG, lovely layered white hair, absurdly long hair, (glowing blue eyes), lip gloss, makeup, (school:1.5), evil smile, medium breasts, school girl, ((arms behind back)), school uniform",
-	"negprompt": "nsfw, (worst quality, low quality:1.3), (depth of field, blurry:1.2), (greyscale, monochrome:1.1), 3D face, nose, cropped, lowres, text, jpeg artifacts, signature, watermark, username, blurry, artist name, trademark, watermark, title",
-	"width": 512,
-	"height": 512,
-	"steps": 25,
-	"cfg": 7,
-	"seed": 86,
-	"scheduler": "LMSD",
-	"mode": "file",
-	"lpw": true
-}
-
-Bench:
-|      PREP      |      2.00 ms |
-|     CLIP**     |     35.00 ms |
-|   UNET x 25    |    390.00 ms |
-|      VAE*      |      3.00 ms |
-|    SERVING     |     42.00 ms |
-|    TOTALCOM    |    471.00 ms |
-|     TOTAL      |    474.00 ms |
-w512 x h512
-lpw: True
-scheduler: LMSD
-accelerated: True
-```
-
-## 512px 50 Steps - 0.84s:
-
-<img src="https://i.imgur.com/c05Cl7i.png" height="512">
-
-```
-
-Sent Request:
-{
-	"prompt": "(extremely detailed CG unity 8k wallpaper,masterpiece, best quality, ultra-detailed,best shadow),(multicolored background),(pop art:1.4),((illustration)),(beautiful detailed face),(floating hair),dynamic angle,High contrast,(limited palette:1.2),(best illumination, an extremely delicate and beautiful)",
-	"negprompt": "nsfw, (worst quality, low quality:1.3), (depth of field, blurry:1.2), (greyscale, monochrome:1.1), 3D face, nose, cropped, lowres, text, jpeg artifacts, signature, watermark, username, blurry, artist name, trademark, watermark, title",
-	"width": 512,
-	"height": 512,
-	"steps": 50,
-	"cfg": 7,
-	"seed": 432,
-	"scheduler": "LMSD",
-	"mode": "file",
-	"lpw": true
-}
-
-Bench:
-|      PREP      |      2.00 ms |
-|     CLIP**     |     25.00 ms |
-|   UNET x 50    |    764.00 ms |
-|      VAE*      |      3.00 ms |
-|    SERVING     |     42.00 ms |
-|    TOTALCOM    |    835.00 ms |
-|     TOTAL      |    838.00 ms |
-w512 x h512
-lpw: True
-scheduler: LMSD
-accelerated: True
-```
-
-## 768px 50 Steps - 1.96s:
-
-<img src="https://i.imgur.com/MNnjUxS.png" height="768">
-
-```
-
-Sent Request:
-{
-	"prompt": "(Masterpiece:1.2), (best quality:1.2), (illustration:1.1), (1girl:1.1), detailed, Cinematic light, intricate detail, highres, a character design of young black lolita dressed girl, grey and blue theme, wavy white long hair by krenz cushart and mucha and akihito yoshida",
-	"negprompt": "nsfw, (worst quality, low quality:1.3), (depth of field, blurry:1.2), (greyscale, monochrome:1.1), 3D face, nose, cropped, lowres, text, jpeg artifacts, signature, watermark, username, blurry, artist name, trademark, watermark, title",
-	"width": 768,
-	"height": 768,
-	"steps": 50,
-	"cfg": 7,
-	"seed": 7011,
-	"scheduler": "LMSD",
-	"mode": "file",
-	"lpw": true
-}
-
-Bench:
-|      PREP      |      2.00 ms |
-|     CLIP**     |     37.00 ms |
-|   UNET x 50    |   1803.00 ms |
-|      VAE*      |      6.00 ms |
-|    SERVING     |    112.00 ms |
-|    TOTALCOM    |   1960.00 ms |
-|     TOTAL      |   1962.00 ms |
-w768 x h768
-lpw: True
-scheduler: LMSD
-accelerated: True
-```
+Adjust it to the configuration used during compilation
